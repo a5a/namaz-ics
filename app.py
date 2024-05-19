@@ -30,7 +30,15 @@ with st.expander("Select year and month"):
 
 
 # location
-city = st.selectbox("City", ("London", "Oxford"))
+city_selector = st.selectbox("City", ("London", "Oxford", "Southampton", "Other"))
+if city_selector == "Other":
+    city_selector_other = st.text_input("City")
+    city = city_selector_other
+else:
+    city = city_selector
+
+print(city)
+
 country = st.selectbox("Country", ("United Kingdom",))
 
 # calculation method
@@ -86,6 +94,7 @@ api_params = {"city": city, "country": country, "year": year, "month": month, "m
 api_call_str = prepare_api_call_url(api_params)
 print(f"Going to run following api call:\n{api_call_str}")
 
+# TODO: Ensure API output is good before running the rest of the code
 raw_output = get_api_data(api_call_str)
 df = pd.DataFrame(raw_output)
 
