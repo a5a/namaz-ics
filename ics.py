@@ -1,4 +1,4 @@
-from icalendar import Alarm, Calendar, Event, Timezone
+from icalendar import Alarm, Calendar, Event, Timezone, TimezoneStandard, TimezoneDaylight
 from datetime import timedelta
 import pandas as pd
 import pytz
@@ -49,6 +49,27 @@ def create_ics_text_from_definition(
     # Define the timezone
     timezone = Timezone()
     timezone.add("tzid", "Europe/London")
+
+    # Standard Time definition
+    standard = TimezoneStandard()
+    standard.add("tzname", "GMT")
+    standard.add("dtstart", pd.Timestamp("1970-10-25T02:00:00").to_pydatetime())
+    standard.add("tzoffsetfrom", timedelta(hours=1))
+    standard.add("tzoffsetto", timedelta(hours=0))
+    standard.add("rrule", {"freq": "yearly", "bymonth": 10, "byday": "-1SU"})
+    timezone.add_component(standard)
+
+    # Daylight Saving Time definition
+    daylight = TimezoneDaylight()
+    daylight.add("tzname", "BST")
+    daylight.add("dtstart", pd.Timestamp("1970-03-29T01:00:00").to_pydatetime())
+    daylight.add("tzoffsetfrom", timedelta(hours=0))
+    daylight.add("tzoffsetto", timedelta(hours=1))
+    daylight.add("rrule", {"freq": "yearly", "bymonth": 3, "byday": "-1SU"})
+    timezone.add_component(daylight)
+
+    # Add timezone to calendar
+    cal.add_component(timezone)
 
     event = Event()
 
