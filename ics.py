@@ -1,4 +1,4 @@
-from icalendar import Alarm, Calendar, Event
+from icalendar import Alarm, Calendar, Event, Timezone
 from datetime import timedelta
 import pandas as pd
 import pytz
@@ -29,13 +29,14 @@ def calculate_ical_df(df_prayer_times, which_prayers):
     return df_dates_for_each_time
 
 
-def create_ics_text_from_definition(prayer, start_date, duration_minutes, last_date, alarm_minutes):
+def create_ics_text_from_definition(
+    prayer=None, start_datetime=None, duration_minutes=None, last_date=None, alarm_minutes=None, df_view_times=None
+):
 
-    # start_date = datetime(2024, 5, 1, 16, 0, 0)  # Start at 16:00
-    # last_date = datetime(2024, 5, 31)
+    london_tz = pytz.timezone("Europe/London")
 
-    start_date = pd.to_datetime(start_date)
-    start_date = pytz.timezone("Europe/London").localize(start_date)
+    start_datetime = pd.to_datetime(start_datetime)
+    start_datetime = london_tz.localize(start_datetime)
     duration = timedelta(minutes=duration_minutes)
     alarm_minutes = timedelta(minutes=-alarm_minutes)
 
@@ -45,21 +46,40 @@ def create_ics_text_from_definition(prayer, start_date, duration_minutes, last_d
     cal.add("prodid", "-//My calendar builder//asa.asa//")
     cal.add("version", "2.0")
 
+    # Define the timezone
+    timezone = Timezone()
+    timezone.add("tzid", "Europe/London")
+
     event = Event()
 
     # Add event properties
     event.add("summary", prayer)
-    event.add("dtstart", start_date)
-    event.add("dtend", start_date + duration)
+    event.add("dtstart", start_datetime)
+    event.add("dtend", start_datetime + duration)
     event.add(
         "rrule",
         {
             "freq": "weekly",
             "interval": 1,
             "byday": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],  # Corrected byday parameter
-            "until": last_date,
+            "until": pd.to_datetime(last_date).date(),
         },
     )
+
+    # Convert df_view_times to a formatted string
+    if df_view_times is not None:
+        # import pdb; pdb.set_trace()
+        table_str = df_view_times.loc[
+            (df_view_times["date"] >= start_datetime.date()) & (df_view_times["date"] <= last_date.date()),
+            ["date", prayer],
+        ].to_string(
+            index=False
+        )  # Convert DataFrame to string
+    else:
+        table_str = ""
+
+    # Add event description with the table
+    event.add("description", f"{prayer} timings:\n{table_str}")  # Add description with table
 
     # Add reminder
     alarm = Alarm()

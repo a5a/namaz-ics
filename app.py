@@ -28,7 +28,7 @@ with st.expander("Select year and month"):
     report_month_str = st.radio("", month_abbr, index=this_month - 1, horizontal=True)
     month = month_abbr.index(report_month_str) + 1
 
-year_and_month_string = str(year) + '_' + ('0' + str(month) if month<10 else str(month))
+year_and_month_string = str(year) + "_" + ("0" + str(month) if month < 10 else str(month))
 st.write(year_and_month_string)
 
 # location
@@ -106,6 +106,16 @@ df_dates_for_each_time = calculate_ical_df(df_prayer_times, which_prayers)
 # Add "Generate iCal" column to the end of the dataframe
 df_dates_for_each_time["Generate iCal"] = True
 
+# dataframe formatted to allow clean viewing of dates and prayer times
+df_view_times = df_prayer_times[[c for c in df_prayer_times.columns if "ceil" not in c]]
+for c in df_view_times.columns:
+    if c == "date":
+        df_view_times[c] = pd.to_datetime(df_view_times[c]).dt.date
+        continue
+    df_view_times[c] = df_view_times[c].dt.time
+with st.expander("View all timings"):
+    st.dataframe(data=df_view_times, width=None, height=None, use_container_width=False, hide_index=None)
+
 df_selected = st.data_editor(
     df_dates_for_each_time, disabled=[c for c in df_dates_for_each_time.columns if c != "Generate iCal"]
 )
@@ -123,7 +133,12 @@ for prayer in which_prayers:
             (
                 f"{prayer}_{idx}",
                 create_ics_text_from_definition(
-                    line["prayer"], line["first_date"], slot_duration, line["last_date"], 10
+                    prayer=line["prayer"],
+                    start_datetime=line["first_date"],
+                    duration_minutes=slot_duration,
+                    last_date=line["last_date"],
+                    alarm_minutes=10,
+                    df_view_times=df_view_times,
                 ),
             )
         )
