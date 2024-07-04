@@ -28,6 +28,8 @@ with st.expander("Select year and month"):
     report_month_str = st.radio("", month_abbr, index=this_month - 1, horizontal=True)
     month = month_abbr.index(report_month_str) + 1
 
+year_and_month_string = str(year) + '_' + ('0' + str(month) if month<10 else str(month))
+st.write(year_and_month_string)
 
 # location
 city_selector = st.selectbox("City", ("London", "Oxford", "Southampton", "Other"))
@@ -131,11 +133,11 @@ buf = io.BytesIO()
 
 with zipfile.ZipFile(buf, "x") as csv_zip:
     for filedef in list_of_ics:
-        csv_zip.writestr(f"{filedef[0]}.ics", filedef[1].to_ical())
+        csv_zip.writestr(f"{filedef[0]}_{year_and_month_string}.ics", filedef[1].to_ical())
 
 st.download_button(
     label="Download zip",
     data=buf.getvalue(),
-    file_name="prayer_times.zip",
+    file_name=f"prayer_times_{year_and_month_string}.zip",
     mime="application/zip",
 )
