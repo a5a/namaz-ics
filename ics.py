@@ -77,6 +77,8 @@ def create_ics_text_from_definition(
     event.add("summary", prayer)
     event.add("dtstart", start_datetime)
     event.add("dtend", start_datetime + duration)
+    event.add("class", "PRIVATE")  # Make the event private
+    event.add("categories", "Personal")  # Add category "Personal"
     event.add(
         "rrule",
         {
