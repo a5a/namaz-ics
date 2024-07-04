@@ -85,7 +85,7 @@ def create_ics_text_from_definition(
             "freq": "weekly",
             "interval": 1,
             "byday": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],  # Corrected byday parameter
-            "until": pd.to_datetime(last_date).date(),
+            "until": last_date,
         },
     )
 
